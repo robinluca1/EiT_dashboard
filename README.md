@@ -1,6 +1,18 @@
 # EiT_dashboard
 
-This template should help get you started developing with Vue 3 in Vite.
+Click on any of the rooms to show their data. Including:
+
+- Temperature
+- Humidity
+- CO2 levels
+- Occupation
+- Energy consumption
+- Noise level
+- Light level
+
+3D model controls:
+Drag the left mouse button to pan the model into view
+Use shift + left click to rotate the model
 
 ## Recommended IDE Setup
 
