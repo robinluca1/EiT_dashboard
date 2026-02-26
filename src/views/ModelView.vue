@@ -192,9 +192,10 @@ onMounted(() => {
 <template>
   <div id="wrapper">
     <div class="overlay">
+      <img src="/src/assets/EiT_logo.png" alt="EiT logo" class="logo" />
       <h1>
         EiT_dashboard
-        <h6 class="version">version 1.1</h6>
+        <h6 class="version">versie 1.1.0</h6>
       </h1>
     </div>
 
@@ -226,6 +227,15 @@ onMounted(() => {
   pointer-events: none;
   color: white;
   font-family: sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 100px;
+  margin-bottom: 8px;
 }
 
 .modal {
@@ -235,6 +245,7 @@ onMounted(() => {
   border-radius: 12px;
   padding: 24px;
   min-width: 220px;
+  font-family: sans-serif;
   display: flex;
   flex-direction: column;
   gap: 12px;
