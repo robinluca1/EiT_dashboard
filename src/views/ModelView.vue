@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Thermometer, Droplet, Wind, Users, Zap, Volume2, Sun } from 'lucide-vue-next'
 import * as THREE from 'three'
 import { MTLLoader } from 'three/addons/loaders/MTLLoader'
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
@@ -12,8 +13,10 @@ const modal = ref({
   visible: false,
   roomName: '',
   roomUrl: '',
+  availableData: [],
   x: 0,
-  y: 0
+  y: 0,
+  showBelow: false
 })
 
 const roomMap = {
@@ -21,11 +24,33 @@ const roomMap = {
   'ST_0.34': 'http://localhost:5173/ST_0.34',
   'ST_0.30': 'http://localhost:5173/ST_0.30',
   'ST_0.26': 'http://localhost:5173/ST_0.26',
-  'ST_0.22': 'http://localhost:5173/ST_0.22',
-  'ST_0.17': 'http://localhost:5173/ST_0.17',
   'ST_0.23': 'http://localhost:5173/ST_0.23',
-  'ST_0.10': 'http://localhost:5173/ST_0.10',
-  'ST_0.18': 'http://localhost:5173/ST_0.18'
+  'ST_0.22': 'http://localhost:5173/ST_0.22',
+  'ST_0.18': 'http://localhost:5173/ST_0.18',
+  'ST_0.17': 'http://localhost:5173/ST_0.17',
+  'ST_0.10': 'http://localhost:5173/ST_0.10'
+}
+
+const roomData = {
+  'ST_0.38': ['temp', 'humidity', 'energy'],
+  'ST_0.34': ['temp', 'humidity', 'energy'],
+  'ST_0.30': ['temp', 'humidity', 'energy'],
+  'ST_0.26': ['temp', 'humidity', 'co2', 'energy'],
+  'ST_0.23': ['temp', 'humidity', 'co2'],
+  'ST_0.22': ['temp', 'humidity', 'energy'],
+  'ST_0.17': ['temp', 'humidity'],
+  'ST_0.18': ['temp', 'humidity', 'co2', 'occupation', 'energy', 'sound', 'light'],
+  'ST_0.10': ['temp', 'humidity', 'co2', 'occupation', 'sound', 'light']
+}
+
+const dataIcons = {
+  temp: { icon: Thermometer, label: 'Temperature' },
+  humidity: { icon: Droplet, label: 'Humidity' },
+  co2: { icon: Wind, label: 'CO2' },
+  occupation: { icon: Users, label: 'Occupation' },
+  energy: { icon: Zap, label: 'Energy' },
+  sound: { icon: Volume2, label: 'Sound' },
+  light: { icon: Sun, label: 'Light' }
 }
 
 function toScreenPosition(object, camera) {
@@ -35,10 +60,13 @@ function toScreenPosition(object, camera) {
 
   center.project(camera)
 
-  return {
-    x: (center.x * 0.5 + 0.5) * window.innerWidth,
-    y: (-center.y * 0.5 + 0.5) * window.innerHeight
-  }
+  const x = (center.x * 0.5 + 0.5) * window.innerWidth
+  const y = (-center.y * 0.5 + 0.5) * window.innerHeight
+
+  const modalHeight = 300
+  const showBelow = y < modalHeight
+
+  return { x, y, showBelow }
 }
 
 function openRoom() {
@@ -58,7 +86,7 @@ onMounted(() => {
   const raycaster = new THREE.Raycaster()
   const mouse = new THREE.Vector2()
 
-  // Model laden
+  // Load 3D model
   const mtlLoader = new MTLLoader()
   mtlLoader.load('src/assets/testroom/betermodel.mtl', (materials) => {
     materials.preload()
@@ -149,13 +177,17 @@ onMounted(() => {
     const intersects = raycaster.intersectObjects(scene.children, true)
 
     if (intersects.length > 0) {
-      const clickedName = intersects[0].object.name
-      if (roomMap[clickedName]) {
+      const clickedRoom = intersects[0].object.name
+      if (roomMap[clickedRoom]) {
         const pos = toScreenPosition(intersects[0].object, camera)
         modal.value.x = pos.x
         modal.value.y = pos.y
-        modal.value.roomName = `Room ${clickedName.replace('ST_', '')}`
-        modal.value.roomUrl = roomMap[clickedName]
+        modal.value.showBelow = pos.showBelow
+        modal.value.roomName = `Room ${clickedRoom.replace('ST_', '')}`
+        modal.value.roomUrl = roomMap[clickedRoom]
+        modal.value.availableData = roomData[clickedRoom] || []
+        console.log('clickedName:', clickedRoom)
+        console.log('availableData:', modal.value.availableData)
         modal.value.visible = true
       }
     }
@@ -193,16 +225,33 @@ onMounted(() => {
   <div id="wrapper">
     <div class="overlay">
       <img src="/src/assets/EiT_logo.png" alt="EiT logo" class="logo" />
-      <h1>
-        EiT_dashboard
-        <h6 class="version">versie 1.1.0</h6>
-      </h1>
+      <h2>EiT_dashboard</h2>
+      <span class="version">version 1.1.1</span>
     </div>
 
     <div id="container"></div>
 
-    <div v-if="modal.visible" class="modal" :style="{ left: modal.x + 'px', top: modal.y + 'px' }">
+    <div
+      v-if="modal.visible"
+      class="modal"
+      :style="{
+        left: modal.x + 'px',
+        top: modal.y + 'px',
+        transform: modal.showBelow ? 'translate(-50%, 16px)' : 'translate(-50%, calc(-100% - 16px))'}"
+    >
       <h2>{{ modal.roomName }}</h2>
+      <p>Available data:</p>
+      <div class="data-badges">
+        <div
+          v-for="(value, type) in dataIcons"
+          :key="type"
+          class="badge"
+          :class="modal.availableData.includes(type) ? 'badge-available' : 'badge-unavailable'"
+        >
+          <component :is="value.icon" :size="14" />
+          <span>{{ value.label }}</span>
+        </div>
+      </div>
       <p>View the roomdata in PowerBI</p>
       <div class="modal-buttons">
         <button @click="closeModal">Close</button>
@@ -221,8 +270,8 @@ onMounted(() => {
 
 .overlay {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 10px;
+  left: 10px;
   z-index: 10;
   pointer-events: none;
   color: white;
@@ -241,7 +290,8 @@ onMounted(() => {
 .modal {
   position: fixed;
   transform: translate(-50%, calc(-100% - 16px));
-  background: white;
+  background: #181a1b;
+  color: white;
   border-radius: 12px;
   padding: 24px;
   min-width: 220px;
@@ -270,9 +320,37 @@ onMounted(() => {
 
 .modal-buttons button:first-child {
   background: transparent;
+  color: white;
   border: 1px solid #ccc;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.data-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-available {
+  background: #064425;
+  color: #329059;
+}
+
+.badge-unavailable {
+  background: #430202;
+  color: #df3421;
 }
 </style>

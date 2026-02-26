@@ -11,6 +11,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "lucide-vue-next": "^0.575.0",
     "three": "^0.183.1",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"
