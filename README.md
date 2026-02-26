@@ -1,7 +1,8 @@
 # EiT_dashboard
+Simple dashboard that shows occupancy data by using a 3D model of certain classrooms/labs at The Hague University of Applied Sciences.
+Data provided by Unica Group. https://www.unica.nl/
 
 Click on any of the rooms to show their data. Including:
-
 - Temperature
 - Humidity
 - CO2 levels
@@ -9,6 +10,8 @@ Click on any of the rooms to show their data. Including:
 - Energy consumption
 - Noise level
 - Light level
+
+Disclaimer: Some rooms won't have all the data types included because of sensor limitations.
 
 3D model controls:
 Drag the left mouse button to pan the model into view
